@@ -1,0 +1,13 @@
+{
+  "name": "inmemory",
+  "version": "0.0.1",
+  "repository": "git@inmemory.github.com:MPucheta/inmemory.git",
+  "author": "Mauro Pucheta",
+  "license": "MIT",
+  "scripts": {
+    "compile": "rm -rf ./dist/lib && tsc && tsc --build tsconfig.es5.json"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
+  }
+}

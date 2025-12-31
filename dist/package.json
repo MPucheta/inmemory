@@ -1,0 +1,32 @@
+{
+  "name": "inmemory",
+  "version": "0.0.1",
+  "description": "A set of JS utils that are meant to be versions of existing services/tools that run in memory",
+  "main": "lib/es5/index.js",
+  "module": "lib/es6/index.js",
+  "sideEffects": false,
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/MPucheta/inmemory.git"
+  },
+  "files": [
+    "lib",
+    "CHANGELOG.md",
+    "LICENSE",
+    "package.json",
+    "README.md"
+  ],
+  "keywords": [
+    "javascript",
+    "typescript",
+    "utils",
+    "utilities",
+    "inmemory"
+  ],
+  "author": "Mauro Pucheta",
+  "license": "MIT",
+  "bugs": {
+    "url": ""
+  },
+  "homepage": "#readme"
+}
