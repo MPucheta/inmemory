@@ -5,7 +5,7 @@
   "author": "Mauro Pucheta",
   "license": "MIT",
   "scripts": {
-    "compile": "rm -rf ./dist/lib && tsc && tsc --build tsconfig.es5.json"
+    "build": "rm -rf ./dist/lib && tsc && tsc --build tsconfig.es5.json"
   },
   "devDependencies": {
     "typescript": "^5.9.3"
