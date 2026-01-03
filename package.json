@@ -6,6 +6,7 @@
   "license": "MIT",
   "scripts": {
     "prepare": "husky install",
+    "pre-commit": "lint-staged",
     "build": "rm -rf ./dist/lib && tsc && tsc --build tsconfig.es5.json"
   },
   "devDependencies": {

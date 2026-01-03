@@ -1,4 +1,0 @@
-#!/usr/bin/env sh
-echo "Debugging the pre-commit hook"
-
-npx lint-staged
