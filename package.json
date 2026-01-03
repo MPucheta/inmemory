@@ -5,6 +5,7 @@
   "author": "Mauro Pucheta",
   "license": "MIT",
   "scripts": {
+    "prepare": "husky install",
     "build": "rm -rf ./dist/lib && tsc && tsc --build tsconfig.es5.json"
   },
   "devDependencies": {
@@ -20,6 +21,9 @@
     "typescript-eslint": "^8.51.0"
   },
   "lint-staged": {
-    "**/*": "prettier --write --ignore-unknown"
+    "src/**/*": [
+      "prettier --write --ignore-unknown",
+      "eslint --fix"
+    ]
   }
 }
