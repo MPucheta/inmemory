@@ -1,6 +1,6 @@
 {
   "name": "in-memory-services",
-  "version": "0.0.4",
+  "version": "0.0.5",
   "description": "A set of JS utils that are meant to be versions of existing services/tools that run in memory",
   "main": "lib/es5/index.js",
   "module": "lib/es6/index.js",

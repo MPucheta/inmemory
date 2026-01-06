@@ -1,0 +1,5 @@
+# .npmignore
+**/*.test.js
+**/*.spec.js
+**/*.test.ts
+**/*.spec.ts
