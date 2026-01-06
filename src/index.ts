@@ -1,3 +1,4 @@
 import version from './versionCheck';
+import * as cache from './caching';
 
-export { version };
+export { cache, version };
