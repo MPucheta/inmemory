@@ -1,14 +1,18 @@
 # In memory services
 
-A library of common services and implementations for distributed systems, but in memory, for single deployment units.
+## Summary
 
-Allows caching, pub/sub and message brokers to be implemented in memory, as pre-step to migrate to actual distributed services or as a way to decouple.
+A library that mimics services and tools for distributed systems, but in memory, for single deployment units.
 
-## Roadmap (?)
+As of now mimics Redis caching, as pre-step to migrate to the actual service or if only caching in memory with expiration is needed.
 
-- Caching ✓
-- Message Broker X
-- Queue X
+## Installing and using
+
+`npm i in-memory-services`
+
+```ts
+import { cache } from 'in-memory-services';
+```
 
 ## Caching
 
@@ -27,13 +31,15 @@ set('key', 'value', 10); // set a <K,V> that will expire in 10 seconds
 
 set('key', null); // throws an error
 
+getOrSet('key', function, 10); // tries to get key, if it fails, uses function to set that value and returns it
+
 del('key'); // deletes stored key
 
 del(['key', 'keys']); // deletes stored keys
 
 exists('key'); // => 1 if key exists, 0 otherwise
 
-exists(['key', 'key2', 'unknown_key']); //2,  => returns amount of keys that exist
+exists(['key', 'key2', 'unknown_key']); //2 => returns amount of keys that exist
 
 expire('key', 10); // adds TTL to key, will expire in 10s
 
@@ -100,3 +106,9 @@ const fetchValuePromise = async () => {
 };
 let value2 = cache.getOrSet('KEY2', fetchValuePromise, 3600);
 ```
+
+## Roadmap (?)
+
+- Caching ✓
+- Message Broker X
+- Queue X
