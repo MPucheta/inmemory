@@ -9,4 +9,5 @@ export {
   keys,
   size,
   clear,
+  getOrSet,
 } from './caching';
