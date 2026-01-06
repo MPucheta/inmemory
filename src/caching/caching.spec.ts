@@ -161,7 +161,7 @@ describe('The caching utility', () => {
     });
 
     it('should still have entry after some time below TTL has passed', () => {
-      cache.set(MOCK_KEY, 'test', 10000);
+      cache.set(MOCK_KEY, 'test', 10);
 
       expect(cache.get(MOCK_KEY)).toBe('test');
 
@@ -181,7 +181,7 @@ describe('The caching utility', () => {
     });
 
     it('should be able to setup a TTL, but then persist it', () => {
-      cache.set(MOCK_KEY, 'test', 4000);
+      cache.set(MOCK_KEY, 'test', 4);
 
       cache.persist(MOCK_KEY);
 
@@ -193,7 +193,15 @@ describe('The caching utility', () => {
     it('should be able to setup a key, and then expire', () => {
       cache.set(MOCK_KEY, 'test');
 
-      cache.expire(MOCK_KEY, 5000);
+      cache.expire(MOCK_KEY, 5);
+
+      jest.runAllTimers();
+
+      expect(cache.get(MOCK_KEY)).toBeNull();
+    });
+
+    it('should be able to setup a ket with float ttl', () => {
+      cache.set(MOCK_KEY, 'test', 5.5);
 
       jest.runAllTimers();
 
@@ -208,13 +216,13 @@ describe('The caching utility', () => {
     });
 
     it('should return a future expiration timestamp ', () => {
-      expect(cache.getExpiration(4000)).toBe(Date.now() + 4000);
+      expect(cache.getExpiration(4)).toBe(Date.now() + 4000);
     });
 
     it('should clear expiration and clear cache appropiately', () => {
       cache.set(MOCK_KEY, 'test'); // without TTL, so we force expiration with utility
 
-      cache.scheduleExpiration(MOCK_KEY, 10000);
+      cache.scheduleExpiration(MOCK_KEY, 10);
 
       jest.runAllTimers();
 

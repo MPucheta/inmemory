@@ -1,6 +1,7 @@
 type Key = string;
 type Value = unknown;
 type StoredValue = { value: Value; expiresAt?: number };
+type Seconds = number;
 type Milliseconds = number;
 
 const cache = new Map<Key, StoredValue>();
@@ -19,9 +20,10 @@ export function get(key: Key): Value {
  * Sets a K,V pair, if given a TTL it will cleanup after that time is elapsed
  * @param key key to set
  * @param value value to set
- * @param ttl ttl in milliseconds to cleanup key
+ * @param ttl ttl in seconds to cleanup key
+ * @throws Error if provided value is null
  */
-export function set(key: Key, value: Value, ttl?: Milliseconds): void {
+export function set(key: Key, value: Value, ttl?: Seconds): void {
   if (value == null) {
     throw new Error(`Cannot set null or undefined as value for key ${key}`);
   }
@@ -68,9 +70,9 @@ export function exists(key: Key | Key[]): number {
 /**
  * Set a timeout on key. After the timeout has expired, the key will automatically be deleted
  * @param key key to expire
- * @param ttl time to expire in milliseconds
+ * @param ttl time to expire in seconds
  */
-export function expire(key: Key, ttl?: Milliseconds): void {
+export function expire(key: Key, ttl: Seconds): void {
   const value = get(key);
 
   set(key, value, ttl);
@@ -89,7 +91,7 @@ export function ttl(key: Key): number {
 
   if (!stored.expiresAt) return -1;
 
-  return stored.expiresAt - Date.now();
+  return ~~((stored.expiresAt - Date.now()) / 1000);
 }
 
 /**
@@ -150,8 +152,8 @@ export function arrayfy(value: unknown) {
  * @param ttl time left
  * @returns timestamp in the future to expire
  */
-export function getExpiration(ttl: Milliseconds): Milliseconds {
-  return Date.now() + ttl;
+export function getExpiration(ttl: Seconds): Milliseconds {
+  return Date.now() + ttl * 1000;
 }
 
 /**
@@ -159,12 +161,12 @@ export function getExpiration(ttl: Milliseconds): Milliseconds {
  * @param key key to expire in the future
  * @param ttl how long until expiration
  */
-export function scheduleExpiration(key: Key, ttl: Milliseconds): void {
+export function scheduleExpiration(key: Key, ttl: Seconds): void {
   if (ttl) {
     const timeout = setTimeout(() => {
       cache.delete(key);
       expirationTimerMap.delete(key); //mini-opt so we only schedule one task
-    }, ttl);
+    }, ttl * 1000);
 
     expirationTimerMap.set(key, timeout);
   }
