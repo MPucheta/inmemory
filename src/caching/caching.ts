@@ -38,6 +38,47 @@ export function set(key: Key, value: Value, ttl?: Seconds): void {
 }
 
 /**
+ * Abstraction of:
+ *
+ * ```ts
+ *  let value = cache.get('KEY');
+ *
+ *   if (!value) {
+ *     value = await fetchValue(...);
+ *
+ *     if (value) cache.set('KEY', value, 3600); // cache for an hour
+ *   }
+ * ```
+ * @param key key to get or set
+ * @param getValuePromise Promise to get the value if it does not exist
+ * @param ttl expiration in seconds
+ * @throws If Promise fails or fetched value is null/undefined
+ */
+export async function getOrSet(
+  key: Key,
+  getValuePromise: () => Promise<Value>,
+  ttl?: Seconds
+): Promise<Value> {
+  let value = get(key);
+
+  if (!value) {
+    try {
+      value = await getValuePromise();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : error;
+
+      throw new Error(
+        `Failed to obtain value in getOrSet, original error: ${message}`
+      );
+    }
+
+    set(key, value, ttl); // set can throw if null, so its covered
+  }
+
+  return value as Value;
+}
+
+/**
  * Removes the specified keys. A key is ignored if it does not exist.
  * @param key key or keys to delete
  * @returns number of deleted keys
@@ -82,9 +123,9 @@ export function expire(key: Key, ttl: Seconds): void {
  * The command returns -2 if the key does not exist.
  * The command returns -1 if the key exists but has no associated expire.
  * @param key key to check TTL
- * @returns -1 if key exist but has no associated expire. -2 if key does not exist
+ * @returns -1 if key exist but has no associated expire. -2 if key does not exist. Or TTL in seconds
  */
-export function ttl(key: Key): number {
+export function ttl(key: Key): Seconds {
   const stored = cache.get(key);
 
   if (!stored) return -2;

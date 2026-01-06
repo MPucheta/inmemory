@@ -2,11 +2,13 @@ import * as cache from './caching';
 
 const MOCK_KEY = '1';
 const MOCK_KEY_2 = '2';
+let fetchValue = jest.fn(async () => Promise.resolve('async'));
 
 describe('The caching utility', () => {
   beforeEach(() => {
     cache.clear(); // this is inmemory so making sure it does not break
     jest.useFakeTimers();
+    fetchValue = jest.fn(async () => Promise.resolve('async'));
   });
 
   describe('for get and set', () => {
@@ -61,8 +63,83 @@ describe('The caching utility', () => {
       );
     });
 
-    it('returns null for non-existing key', () => {
+    it('should return null for non-existing key', () => {
       expect(cache.get(MOCK_KEY)).toBe(null);
+    });
+
+    it('should return previous value when getOrSet', async () => {
+      cache.set(MOCK_KEY, 'test');
+
+      expect(await cache.getOrSet(MOCK_KEY, fetchValue)).toBe('test');
+      expect(fetchValue).not.toHaveBeenCalled();
+    });
+
+    it('should return new value when getOrSet', async () => {
+      expect(await cache.getOrSet(MOCK_KEY, fetchValue)).toBe('async');
+      expect(fetchValue).toHaveBeenCalled();
+    });
+
+    it('should return new value when getOrSet and never expire', async () => {
+      await cache.getOrSet(MOCK_KEY, fetchValue);
+
+      jest.runAllTimers();
+
+      expect(cache.get(MOCK_KEY)).toBe('async');
+      expect(fetchValue).toHaveBeenCalled();
+    });
+
+    it('should be able to be used as condition', async () => {
+      expect(!!(await cache.getOrSet(MOCK_KEY, fetchValue))).toBeTruthy();
+      expect(fetchValue).toHaveBeenCalled();
+    });
+
+    it('should return null when getOrSet expires', async () => {
+      await cache.getOrSet(MOCK_KEY, fetchValue, 5);
+
+      jest.advanceTimersByTime(6000);
+
+      expect(cache.get(MOCK_KEY)).toBeNull();
+      expect(fetchValue).toHaveBeenCalled();
+    });
+
+    it('should throw error if fetch function throws', async () => {
+      await expect(
+        cache.getOrSet(
+          MOCK_KEY,
+          async () => {
+            throw new Error('test error');
+          },
+          5
+        )
+      ).rejects.toThrow(
+        `Failed to obtain value in getOrSet, original error: test error`
+      );
+    });
+
+    it('should throw error if fetch function rejects', async () => {
+      await expect(
+        cache.getOrSet(
+          MOCK_KEY,
+          async () => {
+            return Promise.reject('reject');
+          },
+          5
+        )
+      ).rejects.toThrow(
+        `Failed to obtain value in getOrSet, original error: reject`
+      );
+    });
+
+    it('should throw error if fetch function returns falsy', async () => {
+      await expect(
+        cache.getOrSet(
+          MOCK_KEY,
+          async () => {
+            return null;
+          },
+          5
+        )
+      ).rejects.toThrow(`Cannot set null or undefined as value for key 1`);
     });
   });
 
@@ -206,6 +283,28 @@ describe('The caching utility', () => {
       jest.runAllTimers();
 
       expect(cache.get(MOCK_KEY)).toBeNull();
+    });
+
+    it('should return -2 for TTL if key does not exist', () => {
+      expect(cache.ttl(MOCK_KEY)).toBe(-2);
+    });
+
+    it('should return -1 for TTL if key does not have expiration', () => {
+      cache.set(MOCK_KEY, 'test');
+      expect(cache.ttl(MOCK_KEY)).toBe(-1);
+    });
+
+    it('should return TTL if key has expiration', () => {
+      cache.set(MOCK_KEY, 'test', 10);
+      expect(cache.ttl(MOCK_KEY)).toBe(10);
+    });
+
+    it('should return correct TTL after some time has passed', () => {
+      cache.set(MOCK_KEY, 'test', 10);
+
+      jest.advanceTimersByTime(1000);
+
+      expect(cache.ttl(MOCK_KEY)).toBe(9);
     });
   });
 
