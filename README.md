@@ -4,6 +4,12 @@ A library of common services and implementations for distributed systems, but in
 
 Allows caching, pub/sub and message brokers to be implemented in memory, as pre-step to migrate to actual distributed services or as a way to decouple.
 
+## Roadmap (?)
+
+- Caching ✓
+- Message Broker X
+- Queue X
+
 ## Caching
 
 A subset of operations intended to be like Redis. Mostly getting/setting and expiring
@@ -68,7 +74,7 @@ clear(); // clears cache
 ### Use case
 
 ```ts
-import cache from 'in-memory-service';
+import cache from 'in-memory-services';
 
 let value = cache.get('KEY');
 
@@ -82,7 +88,7 @@ if (!value){
 ### Use case using getOrSet
 
 ```ts
-import cache from 'in-memory-service';
+import cache from 'in-memory-services';
 
 // tries to get a key, if it fails it uses the provided function to get the value and sets timers
 // this can throw if provided function throws or rejects (if promise)
