@@ -80,7 +80,7 @@ clear(); // clears cache
 ### Use case
 
 ```ts
-import cache from 'in-memory-services';
+import { cache } from 'in-memory-services';
 
 let value = cache.get('KEY');
 
@@ -94,7 +94,7 @@ if (!value){
 ### Use case using getOrSet
 
 ```ts
-import cache from 'in-memory-services';
+import { cache } from 'in-memory-services';
 
 // tries to get a key, if it fails it uses the provided function to get the value and sets timers
 // this can throw if provided function throws or rejects (if promise)
