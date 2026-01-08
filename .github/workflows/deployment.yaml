@@ -53,16 +53,10 @@ jobs:
       - name: Build
         run: npm run build
 
-      - name: Debug npm auth
-        run: |
-          npm config list -l
-          npm whoami
-        env:
-          NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
-
       - name: Publish to npm
         run: |
           cd dist
+          cp ../README.md ./README.md
           npm publish --access public
         env:
           NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}
