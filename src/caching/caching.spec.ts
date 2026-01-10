@@ -27,6 +27,14 @@ describe('The caching utility', () => {
       expect(cache.get(MOCK_KEY)).toBe(true);
     });
 
+    it('falsy values', () => {
+      cache.set(MOCK_KEY, false);
+      expect(cache.get(MOCK_KEY)).toBe(false);
+
+      cache.set(MOCK_KEY, 0);
+      expect(cache.get(MOCK_KEY)).toBe(0);
+    });
+
     it('object values', () => {
       cache.set(MOCK_KEY, { property: '1' });
       expect(cache.get(MOCK_KEY)).toEqual({ property: '1' });
@@ -275,6 +283,19 @@ describe('The caching utility', () => {
       jest.runAllTimers();
 
       expect(cache.get(MOCK_KEY)).toBeNull();
+    });
+
+    it('should not fail when calling expire on non existing key', () => {
+      expect(() => cache.expire('NON_KEY', 10)).not.toThrow();
+    });
+
+    it('should throw when calling expire with negative or zero ttl', () => {
+      expect(() => cache.expire(MOCK_KEY, -1)).toThrow(
+        `TTL must be positive got -1`
+      );
+      expect(() => cache.expire(MOCK_KEY, 0)).toThrow(
+        `TTL must be positive got 0`
+      );
     });
 
     it('should be able to setup a ket with float ttl', () => {

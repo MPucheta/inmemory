@@ -31,7 +31,11 @@ set('key', 'value', 10); // set a <K,V> that will expire in 10 seconds
 
 set('key', null); // throws an error
 
+set('key', 'value', -10); // throws an error (TTL negative)
+
 getOrSet('key', function, 10); // tries to get key, if it fails, uses function to set that value and returns it
+
+await getOrSet('key', promise, 10); // tries to get key, if it fails, uses promise to set that value and returns it
 
 del('key'); // deletes stored key
 
@@ -105,6 +109,25 @@ const fetchValuePromise = async () => {
   /* example: fetch call promise */
 };
 let value2 = cache.getOrSet('KEY2', fetchValuePromise, 3600);
+```
+
+### Async
+
+All cache functions have a corresponding async version through `cacheAsync`.
+
+`import { cacheAsync as cache } from 'in-memory-services`
+
+Async is easier to migrate to other interfaces if needed (caches in distributed services work as Promises), but the functionality is the same since they are just wrappers.
+
+```ts
+await get('key');
+await get('unknown_key');
+await set('key', 'value', 10);
+await getOrSet('key', function, 10);
+await del('key');
+.
+.
+.
 ```
 
 ## Roadmap (?)
