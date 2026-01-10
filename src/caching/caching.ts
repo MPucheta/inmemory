@@ -13,15 +13,15 @@ const expirationTimerMap = new Map<Key, NodeJS.Timeout>();
  * @returns the value stored for key
  */
 export function get(key: Key): Value {
-  return cache.get(key)?.value || null;
+  return cache.get(key)?.value ?? null;
 }
 
 /**
  * Sets a K,V pair, if given a TTL it will cleanup after that time is elapsed
  * @param key key to set
  * @param value value to set
- * @param ttl ttl in seconds to cleanup key
- * @throws Error if provided value is null
+ * @param ttl ttl in seconds to cleanup key.
+ * @throws Error if provided value is null, Error if provided TTL is Zero or Negative
  */
 export function set(key: Key, value: Value, ttl?: Seconds): void {
   if (value == null) {
@@ -30,7 +30,13 @@ export function set(key: Key, value: Value, ttl?: Seconds): void {
 
   const storedValue: StoredValue = { value };
 
-  if (ttl) storedValue.expiresAt = getExpiration(ttl);
+  if (ttl != null) {
+    if (ttl <= 0) {
+      throw new Error(`TTL must be positive got ${ttl}`);
+    }
+
+    storedValue.expiresAt = getExpiration(ttl);
+  }
 
   cache.set(key, storedValue);
 
@@ -61,7 +67,7 @@ export async function getOrSet(
 ): Promise<Value> {
   let value = get(key);
 
-  if (!value) {
+  if (value == null) {
     try {
       value = await getValuePromise();
     } catch (error) {
@@ -72,7 +78,7 @@ export async function getOrSet(
       );
     }
 
-    set(key, value, ttl); // set can throw if null, so its covered
+    set(key, value, ttl); // set can throw if null, so its covered if value after promise is
   }
 
   return value as Value;
@@ -88,7 +94,12 @@ export function del(key: Key | Key[]): number {
 
   let counter = 0;
 
-  key.forEach((k) => cache.delete(k) && ++counter);
+  key.forEach((k) => {
+    if (cache.delete(k)) {
+      clearExpirationTimer(k);
+      ++counter;
+    }
+  });
 
   return counter;
 }
@@ -114,9 +125,15 @@ export function exists(key: Key | Key[]): number {
  * @param ttl time to expire in seconds
  */
 export function expire(key: Key, ttl: Seconds): void {
-  const value = get(key);
+  if (ttl <= 0) {
+    throw new Error(`TTL must be positive got ${ttl}`);
+  }
 
-  set(key, value, ttl);
+  const stored = cache.get(key);
+
+  if (!stored) return; // nothing to do if does not exist
+
+  set(key, stored.value, ttl);
 }
 
 /**
@@ -125,14 +142,18 @@ export function expire(key: Key, ttl: Seconds): void {
  * @param key key to check TTL
  * @returns -1 if key exist but has no associated expire. -2 if key does not exist. Or TTL in seconds
  */
-export function ttl(key: Key): Seconds {
+export function ttl(key: Key): Seconds | -1 | -2 {
   const stored = cache.get(key);
 
   if (!stored) return -2;
 
   if (!stored.expiresAt) return -1;
 
-  return ~~((stored.expiresAt - Date.now()) / 1000);
+  const remaining = ~~((stored.expiresAt - Date.now()) / 1000);
+
+  if (remaining <= 0) return -2; //should be cleaned shortly, but treat as expired
+
+  return remaining;
 }
 
 /**
@@ -148,9 +169,7 @@ export function persist(key: Key): boolean {
 
   cache.set(key, { value: stored.value });
 
-  clearTimeout(expirationTimerMap.get(key));
-
-  expirationTimerMap.delete(key);
+  clearExpirationTimer(key);
 
   return true;
 }
@@ -176,6 +195,8 @@ export function size(): number {
  * clears the cache
  */
 export function clear(): void {
+  expirationTimerMap.forEach(clearTimeout);
+  expirationTimerMap.clear();
   cache.clear();
 }
 
@@ -202,13 +223,28 @@ export function getExpiration(ttl: Seconds): Milliseconds {
  * @param key key to expire in the future
  * @param ttl how long until expiration
  */
-export function scheduleExpiration(key: Key, ttl: Seconds): void {
-  if (ttl) {
+export function scheduleExpiration(key: Key, ttl?: Seconds): void {
+  clearExpirationTimer(key);
+
+  if (ttl != null && ttl > 0) {
     const timeout = setTimeout(() => {
       cache.delete(key);
       expirationTimerMap.delete(key); //mini-opt so we only schedule one task
     }, ttl * 1000);
 
     expirationTimerMap.set(key, timeout);
+  }
+}
+
+/**
+ * Internal use to delete timer (in case of deletion, expiration or persistance)
+ * @param key key to clear timer
+ */
+function clearExpirationTimer(key: Key) {
+  const timer = expirationTimerMap.get(key);
+
+  if (timer) {
+    clearTimeout(timer);
+    expirationTimerMap.delete(key);
   }
 }

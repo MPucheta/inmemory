@@ -31,6 +31,8 @@ set('key', 'value', 10); // set a <K,V> that will expire in 10 seconds
 
 set('key', null); // throws an error
 
+set('key', 'value', -10); // throws an error (TTL negative)
+
 getOrSet('key', function, 10); // tries to get key, if it fails, uses function to set that value and returns it
 
 await getOrSet('key', promise, 10); // tries to get key, if it fails, uses promise to set that value and returns it
