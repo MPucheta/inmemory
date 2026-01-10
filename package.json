@@ -1,6 +1,6 @@
 {
   "name": "inmemory",
-  "version": "0.0.8",
+  "version": "0.0.9",
   "repository": "git@inmemory.github.com:MPucheta/inmemory.git",
   "author": "Mauro Pucheta",
   "license": "MIT",
